@@ -1,0 +1,23 @@
+#define _POSIX_C_SOURCE 200809L
+#include<stdio.h>
+#include <string.h>
+#include<stdlib.h>
+int main()
+{
+  char *buff = NULL;
+  size_t size = 0;
+  ssize_t num_char = getline(&buff,&size,stdin);
+
+  printf("Please Enter some text: ",num_char);
+  free(buff);
+}
+  
+
+
+
+
+
+
+
+
+}
