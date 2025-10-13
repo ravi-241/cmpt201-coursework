@@ -1,0 +1,141 @@
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+struct header {
+  uint64_t size;
+  struct header *next;
+  int id;
+};
+
+void initialize_block(struct header *block, uint64_t size, struct header *next,
+                      int id) {
+  block->size = size;
+  block->next = next;
+  block->id = id;
+}
+
+int find_first_fit(struct header *free_list_ptr, uint64_t size) {
+  struct header *current = free_list_ptr;
+  while (current != NULL) {
+    if (current->size >= size) {
+      return current->id;
+    }
+    current = current->next;
+  }
+  return -1;
+}
+
+int find_best_fit(struct header *free_list_ptr, uint64_t size) {
+  int best_fit_id = -1;
+  uint64_t smallest_fit_size = UINT64_MAX;
+  struct header *current = free_list_ptr;
+  while (current != NULL) {
+    if (current->size >= size && current->size < smallest_fit_size) {
+      smallest_fit_size = current->size;
+      best_fit_id = current->id;
+    }
+    current = current->next;
+  }
+  return best_fit_id;
+}
+
+int find_worst_fit(struct header *free_list_ptr, uint64_t size) {
+  int worst_fit_id = -1;
+  uint64_t largest_fit_size = 0;
+  struct header *current = free_list_ptr;
+  while (current != NULL) {
+    if (current->size >= size && current->size > largest_fit_size) {
+      largest_fit_size = current->size;
+      worst_fit_id = current->id;
+    }
+    current = current->next;
+  }
+  return worst_fit_id;
+}
+
+int main(void) {
+
+  struct header *free_block1 = (struct header *)malloc(sizeof(struct header));
+  struct header *free_block2 = (struct header *)malloc(sizeof(struct header));
+  struct header *free_block3 = (struct header *)malloc(sizeof(struct header));
+  struct header *free_block4 = (struct header *)malloc(sizeof(struct header));
+  struct header *free_block5 = (struct header *)malloc(sizeof(struct header));
+
+  initialize_block(free_block1, 6, free_block2, 1);
+  initialize_block(free_block2, 12, free_block3, 2);
+  initialize_block(free_block3, 24, free_block4, 3);
+  initialize_block(free_block4, 8, free_block5, 4);
+  initialize_block(free_block5, 4, NULL, 5);
+
+  struct header *free_list_ptr = free_block1;
+
+  int first_fit_id = find_first_fit(free_list_ptr, 7);
+  int best_fit_id = find_best_fit(free_list_ptr, 7);
+  int worst_fit_id = find_worst_fit(free_list_ptr, 7);
+
+  // TODO: Print out the IDs
+  printf("First Fit ID: %d\n", first_fit_id);
+  printf("Best Fit ID: %d\n", best_fit_id);
+  printf("Worst Fit ID: %d\n", worst_fit_id);
+
+  // Free allocated memory
+  free(free_block1);
+  free(free_block2);
+  free(free_block3);
+  free(free_block4);
+  free(free_block5);
+
+  return 0;
+}
+
+/*
+ * PSEUDO-CODE ALGORITHM: Coalescing Contiguous Free Blocks
+ *
+ * Purpose: When a block is freed, merge it with adjacent free blocks
+ *          to create larger contiguous free space and reduce fragmentation.
+ *
+ * Input: newly_freed_block - the memory block that was just freed
+ *
+ * Algorithm:
+ *
+ * 1. Initialize pointers:
+ *    - current = newly_freed_block
+ *    - prev = pointer to block before current (if it exists)
+ *    - next = pointer to block after current (if it exists)
+ *
+ * 2. Coalesce with PREVIOUS block (if applicable):
+ *    IF prev exists AND prev is free THEN
+ *       - Merge prev and current into one block
+ *       - New merged block size = prev.size + current.size
+ *       - prev.next points to what current.next pointed to
+ *       - Update current to point to prev (the merged block)
+ *    END IF
+ *
+ * 3. Coalesce with NEXT block (if applicable):
+ *    IF next exists AND next is free THEN
+ *       - Merge current and next into one block
+ *       - New merged block size = current.size + next.size
+ *       - current.next points to what next.next pointed to
+ *    END IF
+ *
+ * 4. Update free list:
+ *    - Ensure the coalesced block is properly linked in the free list
+ *    - Remove any merged blocks from the free list (they're now part of the
+ * larger block)
+ *
+ * 5. Return the coalesced block pointer
+ *
+ * Example from diagram:
+ * - Block z (red) is freed
+ * - Block d (before z) is free → merge d and z
+ * - Block n (after z) is free → merge with the d+z block
+ * - Result: One large free block (d+z+n) instead of three separate blocks
+ *
+ * Key Points:
+ * - Always check BOTH directions (before and after)
+ * - Update sizes by adding the block sizes together
+ * - Update pointers to maintain the linked list structure
+ * - This reduces external fragmentation by creating larger contiguous free
+ * spaces
+ */
