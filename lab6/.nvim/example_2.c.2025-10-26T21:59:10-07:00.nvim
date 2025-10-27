@@ -1,0 +1,43 @@
+zsh : 1 : command not found : q
+#include <stdio.h>
+#include <stdlib.h>
+
+#define ASSERT(expr)                                                           \
+  {                                                                            \
+    if (!(expr)) {                                                             \
+      fprintf(stderr, "Assertion failed: %s\n", #expr);                        \
+      exit(1);                                                                 \
+    }                                                                          \
+  }
+
+#define TEST(expr)                                                             \
+  {                                                                            \
+    if (!(expr)) {                                                             \
+      fprintf(stderr, "Test failed: %s\n", #expr);                             \
+      exit(1);                                                                 \
+    }                                                                          \
+  }
+
+                              typedef struct node {
+  uint64_t data;
+  struct node *next;
+} node_t;
+
+typedef struct info {
+  uint64_t sum;
+} info_t;
+
+node_t *head = NULL;
+info_t info = {0};
+
+void insert_sorted(uint64_t data) {
+  node_t *new_node = malloc(sizeof(node_t));
+  ASSERT(new_node != NULL);
+  new_node->data = data;
+  new_node->next = NULL;
+
+  if (head == NULL || data < head->data) {
+    new_node->next = head;
+    head = new_node;
+  } else {
+    uuZZ
